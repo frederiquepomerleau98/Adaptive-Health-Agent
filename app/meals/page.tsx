@@ -1,4 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
+import { getUser } from '@/lib/auth'
 import { getToday } from '@/lib/utils'
 import MealLogForm from '@/components/meals/MealLogForm'
 import MealCard from '@/components/meals/MealCard'
@@ -6,9 +7,8 @@ import BottomNav from '@/components/BottomNav'
 import type { Meal } from '@/types'
 
 export default async function MealsPage() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
+  const supabase = createServiceClient()
+  const user = await getUser()
 
   const today = getToday()
   const { data: meals } = await supabase

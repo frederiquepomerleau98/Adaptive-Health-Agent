@@ -1,11 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
+import { getUser } from '@/lib/auth'
 import Card from '@/components/ui/Card'
 import BottomNav from '@/components/BottomNav'
 
 export default async function CalendarPage() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
+  const supabase = createServiceClient()
+  const user = await getUser()
 
   const now = new Date()
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()

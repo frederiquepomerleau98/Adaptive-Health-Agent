@@ -1,4 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
+import { getUser } from '@/lib/auth'
 import { getToday } from '@/lib/utils'
 import WorkoutGenerator from '@/components/activity/WorkoutGenerator'
 import WorkoutCard from '@/components/activity/WorkoutCard'
@@ -6,9 +7,8 @@ import BottomNav from '@/components/BottomNav'
 import type { Workout } from '@/types'
 
 export default async function ActivityPage() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
+  const supabase = createServiceClient()
+  const user = await getUser()
 
   const today = getToday()
   const { data: workouts } = await supabase

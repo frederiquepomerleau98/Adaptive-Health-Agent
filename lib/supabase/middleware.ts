@@ -29,38 +29,6 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  const isAuthPage = request.nextUrl.pathname === '/login'
-  const isOnboarding = request.nextUrl.pathname === '/onboarding'
-
-  if (!user && !isAuthPage) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
-  }
-
-  if (user && isAuthPage) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/'
-    return NextResponse.redirect(url)
-  }
-
-  if (user && !isOnboarding) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('goal')
-      .eq('id', user.id)
-      .single()
-
-    if (profile && !profile.goal) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/onboarding'
-      return NextResponse.redirect(url)
-    }
-  }
-
+  // Auth disabled for development — skip all redirects
   return supabaseResponse
 }

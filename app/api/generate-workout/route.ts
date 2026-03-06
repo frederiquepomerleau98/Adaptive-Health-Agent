@@ -1,14 +1,12 @@
 import { NextResponse } from 'next/server'
 import { getOpenAI } from '@/lib/openai'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
+import { getUser } from '@/lib/auth'
 
 export async function POST(request: Request) {
   try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const supabase = createServiceClient()
+    const user = await getUser()
 
     const { data: profile } = await supabase
       .from('profiles')

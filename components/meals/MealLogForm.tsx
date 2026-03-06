@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { getClientUser } from '@/lib/auth-client'
 import Button from '@/components/ui/Button'
 import type { MealAnalysis } from '@/types'
 
@@ -57,8 +58,7 @@ export default function MealLogForm() {
 
     try {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
+      const user = await getClientUser()
 
       let imageUrl: string | null = null
       if (imageFile) {

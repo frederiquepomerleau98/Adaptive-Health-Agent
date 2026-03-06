@@ -1,4 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
+import { getUser } from '@/lib/auth'
 import { calculateDailyMacros, getToday } from '@/lib/utils'
 import DailyStats from '@/components/dashboard/DailyStats'
 import QuickActions from '@/components/dashboard/QuickActions'
@@ -6,10 +7,8 @@ import BottomNav from '@/components/BottomNav'
 import type { DailyMacros } from '@/types'
 
 export default async function DashboardPage() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) return null
+  const supabase = createServiceClient()
+  const user = await getUser()
 
   const { data: profile } = await supabase
     .from('profiles')

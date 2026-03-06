@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { getClientUser } from '@/lib/auth-client'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 import type { GeneratedWorkout } from '@/types'
@@ -47,8 +48,7 @@ export default function WorkoutGenerator() {
 
     try {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
+      const user = await getClientUser()
 
       const { error } = await supabase.from('workouts').insert({
         user_id: user.id,

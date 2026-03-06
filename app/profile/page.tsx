@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { getClientUser } from '@/lib/auth-client'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 import BottomNav from '@/components/BottomNav'
@@ -23,8 +24,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const loadProfile = async () => {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      const user = await getClientUser()
 
       const { data } = await supabase
         .from('profiles')
@@ -51,8 +51,7 @@ export default function ProfilePage() {
 
     try {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
+      const user = await getClientUser()
 
       const { error } = await supabase
         .from('profiles')

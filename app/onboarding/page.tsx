@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { getClientUser } from '@/lib/auth-client'
 import Button from '@/components/ui/Button'
 import type { Goal } from '@/types'
 
@@ -41,8 +42,7 @@ export default function OnboardingPage() {
 
     try {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
+      const user = await getClientUser()
 
       const targets = DEFAULT_TARGETS[goal]
 
