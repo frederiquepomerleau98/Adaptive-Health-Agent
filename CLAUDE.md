@@ -12,6 +12,8 @@
 
 **When the user gives multiple changes, spin out a team of agents to work on them in parallel** so we can attack things concurrently and move faster.
 
+**Supabase and Vercel are connected as connectors to Claude.ai.** You can push, pull, and deploy natively without the user prompting you.
+
 ---
 
 ## What This App Is
