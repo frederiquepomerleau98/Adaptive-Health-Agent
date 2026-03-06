@@ -6,21 +6,22 @@ import { createClient } from '@/lib/supabase/client'
 import { getClientUser } from '@/lib/auth-client'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
+import VoiceInput from '@/components/ui/VoiceInput'
 import type { GeneratedWorkout } from '@/types'
-
-const WORKOUT_TYPES = ['Strength', 'Cardio', 'HIIT', 'Flexibility']
-const DURATIONS = [15, 30, 45, 60]
 
 export default function WorkoutGenerator() {
   const router = useRouter()
-  const [type, setType] = useState('Strength')
-  const [duration, setDuration] = useState(30)
   const [prompt, setPrompt] = useState('')
   const [loading, setLoading] = useState(false)
   const [workout, setWorkout] = useState<GeneratedWorkout | null>(null)
   const [error, setError] = useState('')
 
+  const handleVoiceTranscription = (text: string) => {
+    setPrompt(text)
+  }
+
   const handleGenerate = async () => {
+    if (!prompt.trim()) return
     setLoading(true)
     setError('')
 
@@ -28,7 +29,7 @@ export default function WorkoutGenerator() {
       const response = await fetch('/api/generate-workout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, duration, prompt }),
+        body: JSON.stringify({ prompt }),
       })
 
       if (!response.ok) throw new Error('Failed to generate workout')
@@ -62,6 +63,7 @@ export default function WorkoutGenerator() {
       if (error) throw error
       router.refresh()
       setWorkout(null)
+      setPrompt('')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save')
     } finally {
@@ -69,83 +71,79 @@ export default function WorkoutGenerator() {
     }
   }
 
+  const suggestions = [
+    'I want a quick glutes workout',
+    'Upper body, 30 minutes, dumbbells only',
+    'Low energy day, light cardio',
+    'Full body HIIT, 20 minutes',
+  ]
+
   return (
     <div className="space-y-4">
-      <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">Workout type</label>
-        <div className="flex flex-wrap gap-2">
-          {WORKOUT_TYPES.map((t) => (
-            <button
-              key={t}
-              onClick={() => setType(t)}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-                type === t
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">Duration</label>
-        <div className="flex gap-2">
-          {DURATIONS.map((d) => (
-            <button
-              key={d}
-              onClick={() => setDuration(d)}
-              className={`flex-1 rounded-xl py-2 text-sm font-medium transition-colors ${
-                duration === d
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {d}min
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">
-          Additional notes (optional)
-        </label>
-        <textarea
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="e.g. Focus on upper body, no equipment needed"
-          rows={2}
-          className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm placeholder-gray-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-        />
-      </div>
-
-      {error && (
-        <p className="rounded-xl bg-red-50 p-3 text-sm text-red-600">{error}</p>
-      )}
-
       {!workout ? (
-        <Button onClick={handleGenerate} loading={loading} className="w-full" size="lg">
-          Generate workout
-        </Button>
+        <>
+          <div className="relative">
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Tell me what you want... e.g. 'glutes today, I have 25 min and dumbbells'"
+              rows={3}
+              className="w-full rounded-2xl border border-surface-300 bg-surface-100 px-4 py-3 pr-14 text-sm text-white placeholder-gray-500 transition-colors focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/20"
+            />
+            <div className="absolute bottom-3 right-3">
+              <VoiceInput onTranscription={handleVoiceTranscription} />
+            </div>
+          </div>
+
+          {!prompt && (
+            <div className="flex flex-wrap gap-2">
+              {suggestions.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setPrompt(s)}
+                  className="rounded-full bg-surface-200 px-3 py-1.5 text-xs text-gray-400 transition-colors hover:bg-surface-300 hover:text-white"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {error && (
+            <p className="rounded-xl bg-red-500/10 p-3 text-sm text-red-400">{error}</p>
+          )}
+
+          <Button
+            onClick={handleGenerate}
+            loading={loading}
+            disabled={!prompt.trim()}
+            className="w-full"
+            size="lg"
+          >
+            Generate workout
+          </Button>
+        </>
       ) : (
-        <div className="space-y-3">
-          <Card className="border-primary-200 bg-primary-50">
-            <h3 className="mb-1 font-bold text-primary-800">{workout.name}</h3>
-            <p className="mb-3 text-xs text-primary-600">
-              {workout.duration_min} min &middot; ~{workout.estimated_calories} kcal
-            </p>
+        <div className="animate-slide-up space-y-4">
+          <Card className="border-accent-500/20 bg-accent-500/5">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="font-bold text-white">{workout.name}</h3>
+              <span className="text-xs text-gray-500">
+                {workout.duration_min} min &middot; ~{workout.estimated_calories} kcal
+              </span>
+            </div>
             <div className="space-y-2">
               {workout.exercises.map((exercise, i) => (
-                <div key={i} className="rounded-xl bg-white p-3">
-                  <p className="font-medium text-sm">{exercise.name}</p>
-                  <p className="text-xs text-gray-500">
-                    {exercise.sets} sets x {exercise.reps} reps &middot; {exercise.rest_seconds}s rest
+                <div key={i} className="rounded-xl bg-surface-100 p-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-white">{exercise.name}</p>
+                    <p className="text-xs text-gray-500">{exercise.rest_seconds}s rest</p>
+                  </div>
+                  <p className="mt-0.5 text-xs text-gray-400">
+                    {exercise.sets} sets x {exercise.reps}
                   </p>
                   {exercise.notes && (
-                    <p className="mt-1 text-xs text-gray-400">{exercise.notes}</p>
+                    <p className="mt-1 text-xs text-gray-500">{exercise.notes}</p>
                   )}
                 </div>
               ))}

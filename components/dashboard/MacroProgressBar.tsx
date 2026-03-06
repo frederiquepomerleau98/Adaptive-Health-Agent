@@ -12,20 +12,20 @@ export default function MacroProgressBar({ label, current, target, unit, color }
 
   return (
     <div>
-      <div className="mb-1 flex items-center justify-between text-sm">
-        <span className="font-medium text-gray-700">{label}</span>
-        <span className="text-gray-500">
-          {current}{unit} / {target}{unit}
+      <div className="mb-1.5 flex items-center justify-between">
+        <span className="text-xs font-medium text-gray-400">{label}</span>
+        <span className="text-xs text-gray-500">
+          {current} / {target}{unit}
         </span>
       </div>
-      <div className="h-3 overflow-hidden rounded-full bg-gray-100">
+      <div className="h-1.5 overflow-hidden rounded-full bg-surface-300">
         <div
-          className={`h-full rounded-full transition-all duration-500 ${color}`}
+          className={`h-full rounded-full transition-all duration-700 ease-out ${color}`}
           style={{ width: `${percentage}%` }}
         />
       </div>
-      <p className="mt-1 text-xs text-gray-400">
-        {remaining > 0 ? `${remaining}${unit} remaining` : 'Target reached!'}
+      <p className="mt-1 text-[10px] text-gray-500">
+        {remaining > 0 ? `${remaining}${unit} left` : 'Target reached'}
       </p>
     </div>
   )

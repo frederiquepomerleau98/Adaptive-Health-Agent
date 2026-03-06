@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 const RATE_LIMIT_SECONDS = 60
 
@@ -12,7 +13,7 @@ export default function LoginPage() {
   return (
     <Suspense fallback={
       <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-600 border-t-transparent" />
+        <LoadingSpinner />
       </div>
     }>
       <LoginForm />
@@ -64,7 +65,7 @@ function LoginForm() {
       if (error) {
         if (error.message.toLowerCase().includes('rate') || error.message.toLowerCase().includes('security')) {
           setCooldown(RATE_LIMIT_SECONDS)
-          setError(`Please wait before requesting another link.`)
+          setError('Please wait before requesting another link.')
           return
         }
         throw error
@@ -81,17 +82,21 @@ function LoginForm() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-6">
         <div className="w-full max-w-sm text-center">
-          <div className="mb-6 text-5xl">✉️</div>
-          <h1 className="mb-2 text-2xl font-bold">Check your email</h1>
+          <div className="mb-6 flex h-16 w-16 mx-auto items-center justify-center rounded-2xl bg-accent-500/10">
+            <svg className="h-8 w-8 text-accent-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+            </svg>
+          </div>
+          <h1 className="mb-2 text-2xl font-bold text-white">Check your email</h1>
           <p className="mb-6 text-gray-500">
-            We sent a magic link to <span className="font-medium text-gray-900">{email}</span>
+            We sent a magic link to <span className="font-medium text-white">{email}</span>
           </p>
-          <p className="mb-6 text-sm text-gray-400">
+          <p className="mb-6 text-sm text-gray-500">
             Click the link in the email to sign in. It expires in 10 minutes.
           </p>
           <button
             onClick={() => setSent(false)}
-            className="text-sm text-primary-600 hover:text-primary-700"
+            className="text-sm text-accent-400 hover:text-accent-300"
           >
             Try a different email
           </button>
@@ -104,8 +109,8 @@ function LoginForm() {
     <div className="flex min-h-screen flex-col items-center justify-center px-6">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <h1 className="mb-2 text-3xl font-bold">Adaptive Health</h1>
-          <p className="text-gray-500">Your AI-powered health co-pilot</p>
+          <h1 className="mb-1 text-3xl font-bold text-white">Adaptive</h1>
+          <p className="text-sm text-gray-500">Your AI-powered health companion</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
@@ -129,7 +134,7 @@ function LoginForm() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-gray-400">
+        <p className="mt-6 text-center text-xs text-gray-500">
           No password needed. We&apos;ll email you a login link.
         </p>
       </div>

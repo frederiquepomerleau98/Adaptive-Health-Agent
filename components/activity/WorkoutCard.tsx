@@ -8,20 +8,22 @@ interface WorkoutCardProps {
 
 export default function WorkoutCard({ workout }: WorkoutCardProps) {
   return (
-    <Card>
+    <Card hover>
       <div className="flex items-start justify-between">
-        <div>
-          <h3 className="font-medium">{workout.type ?? 'Workout'}</h3>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-sm font-medium text-white">{workout.type ?? 'Workout'}</h3>
           <div className="mt-1 flex gap-3 text-xs text-gray-500">
             {workout.duration_min && <span>{workout.duration_min} min</span>}
-            {workout.calories_burned && <span>{workout.calories_burned} kcal</span>}
+            {workout.calories_burned && (
+              <span className="text-accent-400">{workout.calories_burned} kcal</span>
+            )}
           </div>
           {workout.muscle_groups.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {workout.muscle_groups.map((group) => (
                 <span
                   key={group}
-                  className="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-600"
+                  className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium text-violet-400"
                 >
                   {group}
                 </span>
@@ -29,10 +31,10 @@ export default function WorkoutCard({ workout }: WorkoutCardProps) {
             </div>
           )}
           {workout.notes && (
-            <p className="mt-2 text-sm text-gray-500">{workout.notes}</p>
+            <p className="mt-2 truncate text-xs text-gray-500">{workout.notes}</p>
           )}
         </div>
-        <span className="text-xs text-gray-400">{formatTime(workout.performed_at)}</span>
+        <span className="shrink-0 text-xs text-gray-500">{formatTime(workout.performed_at)}</span>
       </div>
     </Card>
   )

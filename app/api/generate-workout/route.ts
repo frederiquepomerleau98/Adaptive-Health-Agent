@@ -44,7 +44,9 @@ Generate a workout and return ONLY valid JSON:
         { role: 'system', content: systemPrompt },
         {
           role: 'user',
-          content: `Create a ${duration ?? 30}-minute ${type ?? 'strength'} workout. ${prompt ?? ''}`,
+          content: prompt
+            ? prompt
+            : `Create a ${duration ?? 30}-minute ${type ?? 'strength'} workout.`,
         },
       ],
       max_tokens: 1000,

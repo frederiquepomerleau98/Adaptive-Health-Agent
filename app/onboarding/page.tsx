@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { getClientUser } from '@/lib/auth-client'
 import Button from '@/components/ui/Button'
+import VoiceInput from '@/components/ui/VoiceInput'
 import type { Goal } from '@/types'
 
 const GOALS: { value: Goal; label: string; description: string }[] = [
@@ -26,14 +27,20 @@ export default function OnboardingPage() {
   const router = useRouter()
   const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const [goal, setGoal] = useState<Goal | null>(null)
   const [targetWeight, setTargetWeight] = useState('')
   const [timelineWeeks, setTimelineWeeks] = useState('12')
   const [dietaryPrefs, setDietaryPrefs] = useState<string[]>([])
   const [activityPrefs, setActivityPrefs] = useState<string[]>([])
+  const [additionalNotes, setAdditionalNotes] = useState('')
 
   const togglePref = (list: string[], item: string, setter: (v: string[]) => void) => {
     setter(list.includes(item) ? list.filter((i) => i !== item) : [...list, item])
+  }
+
+  const handleVoiceTranscription = (text: string) => {
+    setAdditionalNotes(text)
   }
 
   const handleFinish = async () => {
@@ -43,10 +50,9 @@ export default function OnboardingPage() {
     try {
       const supabase = createClient()
       const user = await getClientUser()
-
       const targets = DEFAULT_TARGETS[goal]
 
-      const { error } = await supabase
+      const { error: dbError } = await supabase
         .from('profiles')
         .update({
           goal,
@@ -61,33 +67,46 @@ export default function OnboardingPage() {
         })
         .eq('id', user.id)
 
-      if (error) throw error
+      if (dbError) throw dbError
       router.push('/')
       router.refresh()
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Something went wrong')
+      setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
       setLoading(false)
     }
   }
 
+  const stepTitles = [
+    "What's your goal?",
+    'A few details',
+    'Dietary preferences',
+    'What do you enjoy?',
+    'Anything else?',
+  ]
+
   return (
-    <div className="flex min-h-screen flex-col px-6 py-12">
+    <div className="mx-auto flex min-h-screen max-w-lg flex-col px-6 py-12">
+      {/* Progress */}
       <div className="mb-8">
-        <div className="mb-4 flex gap-2">
-          {[0, 1, 2, 3].map((i) => (
+        <div className="mb-4 flex gap-1.5">
+          {stepTitles.map((_, i) => (
             <div
               key={i}
-              className={`h-1.5 flex-1 rounded-full ${i <= step ? 'bg-primary-600' : 'bg-gray-200'}`}
+              className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
+                i <= step ? 'bg-accent-500' : 'bg-surface-300'
+              }`}
             />
           ))}
         </div>
-        <h1 className="text-2xl font-bold">
-          {step === 0 && "What's your goal?"}
-          {step === 1 && 'Target details'}
-          {step === 2 && 'Dietary preferences'}
-          {step === 3 && 'Favorite activities'}
-        </h1>
+        <h1 className="text-2xl font-bold text-white">{stepTitles[step]}</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          {step === 0 && 'This helps us personalize your experience'}
+          {step === 1 && 'Optional — helps calibrate your targets'}
+          {step === 2 && 'Select all that apply'}
+          {step === 3 && "We'll tailor workout suggestions"}
+          {step === 4 && 'Use voice or text to tell us more about you'}
+        </p>
       </div>
 
       {step === 0 && (
@@ -96,13 +115,13 @@ export default function OnboardingPage() {
             <button
               key={g.value}
               onClick={() => setGoal(g.value)}
-              className={`w-full rounded-2xl border-2 p-4 text-left transition-colors ${
+              className={`w-full rounded-2xl border p-4 text-left transition-all ${
                 goal === g.value
-                  ? 'border-primary-600 bg-primary-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-accent-500 bg-accent-500/5'
+                  : 'border-surface-300 hover:border-surface-400'
               }`}
             >
-              <p className="font-semibold">{g.label}</p>
+              <p className="font-semibold text-white">{g.label}</p>
               <p className="text-sm text-gray-500">{g.description}</p>
             </button>
           ))}
@@ -112,7 +131,7 @@ export default function OnboardingPage() {
       {step === 1 && (
         <div className="flex-1 space-y-6">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+            <label className="mb-1.5 block text-sm font-medium text-gray-300">
               Target weight (kg) — optional
             </label>
             <input
@@ -120,11 +139,11 @@ export default function OnboardingPage() {
               value={targetWeight}
               onChange={(e) => setTargetWeight(e.target.value)}
               placeholder="e.g. 75"
-              className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+              className="w-full rounded-xl border border-surface-300 bg-surface-100 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/20"
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+            <label className="mb-1.5 block text-sm font-medium text-gray-300">
               Timeline (weeks)
             </label>
             <input
@@ -132,7 +151,7 @@ export default function OnboardingPage() {
               value={timelineWeeks}
               onChange={(e) => setTimelineWeeks(e.target.value)}
               placeholder="12"
-              className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+              className="w-full rounded-xl border border-surface-300 bg-surface-100 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/20"
             />
           </div>
         </div>
@@ -145,10 +164,10 @@ export default function OnboardingPage() {
               <button
                 key={pref}
                 onClick={() => togglePref(dietaryPrefs, pref, setDietaryPrefs)}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
                   dietaryPrefs.includes(pref)
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-accent-500 text-white'
+                    : 'bg-surface-200 text-gray-400 hover:bg-surface-300 hover:text-white'
                 }`}
               >
                 {pref}
@@ -165,10 +184,10 @@ export default function OnboardingPage() {
               <button
                 key={pref}
                 onClick={() => togglePref(activityPrefs, pref, setActivityPrefs)}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
                   activityPrefs.includes(pref)
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-accent-500 text-white'
+                    : 'bg-surface-200 text-gray-400 hover:bg-surface-300 hover:text-white'
                 }`}
               >
                 {pref}
@@ -178,13 +197,37 @@ export default function OnboardingPage() {
         </div>
       )}
 
+      {step === 4 && (
+        <div className="flex-1 space-y-4">
+          <div className="relative">
+            <textarea
+              value={additionalNotes}
+              onChange={(e) => setAdditionalNotes(e.target.value)}
+              placeholder="Tell us about your schedule, equipment, injuries, preferences... anything that helps us help you better."
+              rows={5}
+              className="w-full rounded-2xl border border-surface-300 bg-surface-100 px-4 py-3 pr-14 text-sm text-white placeholder-gray-500 transition-colors focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/20"
+            />
+            <div className="absolute bottom-3 right-3">
+              <VoiceInput onTranscription={handleVoiceTranscription} />
+            </div>
+          </div>
+          <p className="text-xs text-gray-500">
+            This is optional but helps the AI give you better recommendations.
+          </p>
+        </div>
+      )}
+
+      {error && (
+        <p className="mt-4 rounded-xl bg-red-500/10 p-3 text-sm text-red-400">{error}</p>
+      )}
+
       <div className="mt-8 flex gap-3">
         {step > 0 && (
           <Button variant="secondary" onClick={() => setStep(step - 1)} className="flex-1">
             Back
           </Button>
         )}
-        {step < 3 ? (
+        {step < 4 ? (
           <Button
             onClick={() => setStep(step + 1)}
             disabled={step === 0 && !goal}

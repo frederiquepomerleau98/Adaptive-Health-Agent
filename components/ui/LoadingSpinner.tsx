@@ -13,8 +13,7 @@ export default function LoadingSpinner({ size = 'md', className = '' }: LoadingS
   return (
     <div className={`flex items-center justify-center ${className}`}>
       <svg
-        className={`animate-spin text-primary-600 ${sizeClasses[size]}`}
-        xmlns="http://www.w3.org/2000/svg"
+        className={`animate-spin text-accent-500 ${sizeClasses[size]}`}
         fill="none"
         viewBox="0 0 24 24"
       >
