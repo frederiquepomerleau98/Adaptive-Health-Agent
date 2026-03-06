@@ -18,6 +18,7 @@ export default function MealLogForm() {
   const [analysis, setAnalysis] = useState<MealAnalysis | null>(null)
   const [error, setError] = useState('')
   const [logMethod, setLogMethod] = useState<LogMethod>('text')
+  const [voiceState, setVoiceState] = useState<'idle' | 'recording' | 'processing'>('idle')
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -119,6 +120,23 @@ export default function MealLogForm() {
     <div className="space-y-4">
       {!analysis ? (
         <>
+          {/* Voice status */}
+          {voiceState === 'recording' && (
+            <div className="flex items-center gap-2 rounded-xl bg-red-500/10 px-4 py-2">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
+              <p className="text-xs text-red-400">Recording... tap mic to stop</p>
+            </div>
+          )}
+          {voiceState === 'processing' && (
+            <div className="flex items-center gap-2 rounded-xl bg-surface-200 px-4 py-2">
+              <svg className="h-3 w-3 animate-spin text-accent-400" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              <p className="text-xs text-gray-400">Transcribing...</p>
+            </div>
+          )}
+
           {/* Input area with voice */}
           <div className="relative">
             <textarea
@@ -129,10 +147,14 @@ export default function MealLogForm() {
               }}
               placeholder="Describe what you ate... or use voice / photo"
               rows={3}
-              className="w-full rounded-2xl border border-surface-300 bg-surface-100 px-4 py-3 pr-14 text-sm text-white placeholder-gray-500 transition-colors focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/20"
+              className="w-full rounded-2xl border border-surface-300 bg-surface-100 px-4 py-3 pr-14 text-sm text-white placeholder-gray-500 transition-colors focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/20 resize-none"
             />
             <div className="absolute bottom-3 right-3">
-              <VoiceInput onTranscription={handleVoiceTranscription} />
+              <VoiceInput
+                onTranscription={handleVoiceTranscription}
+                onStateChange={setVoiceState}
+                onError={(err) => setError(err)}
+              />
             </div>
           </div>
 

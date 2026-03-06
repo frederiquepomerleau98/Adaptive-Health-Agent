@@ -4,14 +4,25 @@ import { useState, useRef, useCallback } from 'react'
 
 interface VoiceInputProps {
   onTranscription: (text: string) => void
+  onStateChange?: (state: 'idle' | 'recording' | 'processing') => void
+  onError?: (error: string) => void
   className?: string
 }
 
 type RecordingState = 'idle' | 'recording' | 'processing'
 
-export default function VoiceInput({ onTranscription, className = '' }: VoiceInputProps) {
-  const [state, setState] = useState<RecordingState>('idle')
-  const [error, setError] = useState<string | null>(null)
+export default function VoiceInput({ onTranscription, onStateChange, onError, className = '' }: VoiceInputProps) {
+  const [state, setStateInternal] = useState<RecordingState>('idle')
+  const [, setErrorInternal] = useState<string | null>(null)
+
+  const setState = (s: RecordingState) => {
+    setStateInternal(s)
+    onStateChange?.(s)
+  }
+  const setError = (e: string | null) => {
+    setErrorInternal(e)
+    if (e) onError?.(e)
+  }
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
 
@@ -76,11 +87,12 @@ export default function VoiceInput({ onTranscription, className = '' }: VoiceInp
   }
 
   return (
-    <div className={`flex flex-col items-center ${className}`}>
+    <div className={`inline-flex items-center ${className}`}>
       <button
+        type="button"
         onClick={handleClick}
         disabled={state === 'processing'}
-        className={`relative flex h-12 w-12 items-center justify-center rounded-full transition-all duration-200 ${
+        className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all duration-200 ${
           state === 'recording'
             ? 'animate-pulse-ring bg-red-500 text-white'
             : state === 'processing'
@@ -90,16 +102,16 @@ export default function VoiceInput({ onTranscription, className = '' }: VoiceInp
         title={state === 'idle' ? 'Start recording' : state === 'recording' ? 'Stop recording' : 'Processing...'}
       >
         {state === 'processing' ? (
-          <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
+          <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
         ) : state === 'recording' ? (
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
             <rect x="6" y="6" width="12" height="12" rx="2" />
           </svg>
         ) : (
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
           </svg>
         )}
@@ -107,15 +119,6 @@ export default function VoiceInput({ onTranscription, className = '' }: VoiceInp
           <span className="absolute -inset-1 animate-ping rounded-full bg-red-500/30" />
         )}
       </button>
-      {state === 'recording' && (
-        <p className="mt-2 text-xs text-red-400">Recording... tap to stop</p>
-      )}
-      {state === 'processing' && (
-        <p className="mt-2 text-xs text-gray-500">Transcribing...</p>
-      )}
-      {error && (
-        <p className="mt-2 text-xs text-red-400">{error}</p>
-      )}
     </div>
   )
 }
