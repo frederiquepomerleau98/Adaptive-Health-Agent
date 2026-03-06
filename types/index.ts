@@ -17,6 +17,9 @@ export interface Profile {
   protein_target_g: number | null
   carbs_target_g: number | null
   fat_target_g: number | null
+  fiber_target_g: number | null
+  hydration_target_ml: number | null
+  steps_target: number | null
   created_at: string
 }
 
@@ -29,6 +32,7 @@ export interface Meal {
   protein_g: number | null
   carbs_g: number | null
   fat_g: number | null
+  fiber_g: number | null
   log_method: LogMethod | null
   image_url: string | null
   created_at: string
@@ -64,6 +68,7 @@ export interface MealAnalysis {
   protein_g: number
   carbs_g: number
   fat_g: number
+  fiber_g: number
   confidence: 'high' | 'medium' | 'low'
   notes?: string
 }
@@ -73,6 +78,12 @@ export interface DailyMacros {
   protein_g: number
   carbs_g: number
   fat_g: number
+}
+
+export interface DailyNutrition extends DailyMacros {
+  fiber_g: number
+  hydration_ml: number
+  steps: number
 }
 
 export interface GeneratedWorkout {

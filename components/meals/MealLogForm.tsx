@@ -93,6 +93,7 @@ export default function MealLogForm() {
         protein_g: analysis.protein_g,
         carbs_g: analysis.carbs_g,
         fat_g: analysis.fat_g,
+        fiber_g: analysis.fiber_g ?? null,
         log_method: logMethod,
         image_url: imageUrl,
       })
@@ -212,7 +213,7 @@ export default function MealLogForm() {
         <div className="animate-slide-up space-y-4">
           <Card className="border-accent-500/20 bg-accent-500/5">
             <h3 className="mb-3 font-semibold text-white">{analysis.description}</h3>
-            <div className="grid grid-cols-4 gap-2 text-center">
+            <div className="grid grid-cols-5 gap-2 text-center">
               <div>
                 <p className="text-lg font-bold text-accent-400">{analysis.calories}</p>
                 <p className="text-[10px] text-gray-500">kcal</p>
@@ -224,6 +225,10 @@ export default function MealLogForm() {
               <div>
                 <p className="text-lg font-bold text-amber-400">{analysis.carbs_g}g</p>
                 <p className="text-[10px] text-gray-500">carbs</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-emerald-400">{analysis.fiber_g}g</p>
+                <p className="text-[10px] text-gray-500">fiber</p>
               </div>
               <div>
                 <p className="text-lg font-bold text-rose-400">{analysis.fat_g}g</p>

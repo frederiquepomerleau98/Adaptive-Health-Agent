@@ -1,4 +1,4 @@
-import type { DailyMacros, Meal } from '@/types'
+import type { DailyMacros, DailyNutrition, Meal } from '@/types'
 
 export function formatDate(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date
@@ -31,6 +31,16 @@ export function calculateDailyMacros(meals: Meal[]): DailyMacros {
     }),
     { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0 }
   )
+}
+
+export function calculateDailyNutrition(meals: Meal[]): DailyNutrition {
+  const macros = calculateDailyMacros(meals)
+  return {
+    ...macros,
+    fiber_g: meals.reduce((sum, m) => sum + (m.fiber_g ?? 0), 0),
+    hydration_ml: 0,
+    steps: 0,
+  }
 }
 
 export function macroPercentage(consumed: number, target: number): number {

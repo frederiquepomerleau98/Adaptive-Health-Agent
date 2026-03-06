@@ -2,8 +2,11 @@ export const dynamic = 'force-dynamic'
 
 import { createServiceClient } from '@/lib/supabase/server'
 import { getUser } from '@/lib/auth'
-import { calculateDailyMacros, getToday } from '@/lib/utils'
-import DailyStats from '@/components/dashboard/DailyStats'
+import { calculateDailyNutrition, getToday } from '@/lib/utils'
+import CalorieRing from '@/components/ui/CalorieRing'
+import ArcGauge from '@/components/ui/ArcGauge'
+import MiniMetric from '@/components/ui/MiniMetric'
+import MovementCard from '@/components/dashboard/MovementCard'
 import QuickActions from '@/components/dashboard/QuickActions'
 import AIInsightCard from '@/components/dashboard/AIInsightCard'
 import Card from '@/components/ui/Card'
@@ -35,13 +38,16 @@ export default async function DashboardPage() {
     .gte('performed_at', `${today}T00:00:00`)
     .lte('performed_at', `${today}T23:59:59`)
 
-  const consumed = calculateDailyMacros(meals ?? [])
+  const nutrition = calculateDailyNutrition(meals ?? [])
   const targets: DailyMacros = {
     calories: profile?.calorie_target ?? 2200,
     protein_g: profile?.protein_target_g ?? 150,
     carbs_g: profile?.carbs_target_g ?? 220,
     fat_g: profile?.fat_target_g ?? 75,
   }
+  const fiberTarget = profile?.fiber_target_g ?? 30
+  const hydrationTarget = profile?.hydration_target_ml ?? 2500
+  const stepsTarget = profile?.steps_target ?? 8000
 
   const totalCaloriesBurned = (workouts ?? []).reduce(
     (sum: number, w: { calories_burned: number | null }) => sum + (w.calories_burned ?? 0),
@@ -66,46 +72,129 @@ export default async function DashboardPage() {
 
       {/* AI Insight */}
       <AIInsightCard
-        consumed={consumed}
+        consumed={targets}
         targets={targets}
         workoutsDone={(workouts ?? []).length}
         caloriesBurned={totalCaloriesBurned}
       />
 
-      {/* Today's Progress */}
-      <DailyStats consumed={consumed} targets={targets} />
+      {/* ═══════════════════════════════════════════
+          HERO TRACKER — Primary Metrics
+          ═══════════════════════════════════════════ */}
+      <Card className="overflow-hidden">
+        <p className="mb-4 text-[10px] font-medium uppercase tracking-wider text-gray-500">
+          Today&apos;s Nutrition
+        </p>
 
-      {/* Activity summary */}
-      {totalCaloriesBurned > 0 && (
-        <Card>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10">
-              <svg className="h-5 w-5 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-white">
-                {totalCaloriesBurned} kcal burned
-              </p>
-              <p className="text-xs text-gray-500">
-                {(workouts ?? []).length} workout{(workouts ?? []).length !== 1 ? 's' : ''} today
-              </p>
-            </div>
+        {/* Calorie Ring + Primary Arc Gauges */}
+        <div className="flex flex-col items-center gap-6 sm:flex-row sm:justify-around">
+          {/* Central calorie ring */}
+          <CalorieRing
+            consumed={nutrition.calories}
+            target={targets.calories}
+            size={180}
+          />
+
+          {/* Primary metric arcs: Protein, Fiber, Hydration */}
+          <div className="flex gap-4 sm:flex-col sm:gap-3">
+            <ArcGauge
+              value={nutrition.protein_g}
+              max={targets.protein_g}
+              label="Protein"
+              unit="g"
+              color="stroke-violet-500"
+              glowColor="rgba(139, 92, 246, 0.3)"
+              size={90}
+            />
+            <ArcGauge
+              value={nutrition.fiber_g}
+              max={fiberTarget}
+              label="Fiber"
+              unit="g"
+              color="stroke-emerald-500"
+              glowColor="rgba(16, 185, 129, 0.3)"
+              size={90}
+            />
+            <ArcGauge
+              value={nutrition.hydration_ml > 0 ? Math.round(nutrition.hydration_ml / 100) : 0}
+              max={Math.round(hydrationTarget / 100)}
+              label="Hydration"
+              unit="dl"
+              color="stroke-sky-500"
+              glowColor="rgba(14, 165, 233, 0.3)"
+              size={90}
+            />
           </div>
-        </Card>
-      )}
+        </div>
+      </Card>
+
+      {/* ═══════════════════════════════════════════
+          SECONDARY NUTRITION — Compact Grid
+          ═══════════════════════════════════════════ */}
+      <div>
+        <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-gray-500">
+          Nutrition Details
+        </p>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+          <MiniMetric
+            label="Carbs"
+            value={Math.round(nutrition.carbs_g)}
+            target={Math.round(targets.carbs_g)}
+            unit="g"
+            color="text-amber-400"
+          />
+          <MiniMetric
+            label="Fat"
+            value={Math.round(nutrition.fat_g)}
+            target={Math.round(targets.fat_g)}
+            unit="g"
+            color="text-rose-400"
+          />
+          <MiniMetric
+            label="Omega-3"
+            value="—"
+            unit=""
+            color="text-sky-400"
+          />
+          <MiniMetric
+            label="Electrolytes"
+            value="—"
+            unit=""
+            color="text-teal-400"
+          />
+          <MiniMetric
+            label="Vitamins"
+            value="—"
+            unit=""
+            color="text-purple-400"
+          />
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════
+          MOVEMENT & FITNESS
+          ═══════════════════════════════════════════ */}
+      <MovementCard
+        steps={nutrition.steps}
+        stepsTarget={stepsTarget}
+        workoutsDone={(workouts ?? []).length}
+        caloriesBurned={totalCaloriesBurned}
+      />
 
       {/* Quick Actions */}
       <div>
-        <h2 className="mb-3 text-sm font-medium text-gray-400">Quick Actions</h2>
+        <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-gray-500">
+          Quick Actions
+        </p>
         <QuickActions />
       </div>
 
       {/* Recent meals */}
       {recentMeals.length > 0 && (
         <div>
-          <h2 className="mb-3 text-sm font-medium text-gray-400">Recent Meals</h2>
+          <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-gray-500">
+            Recent Meals
+          </p>
           <div className="space-y-2">
             {recentMeals.map((meal) => (
               <Card key={meal.id} hover>
@@ -116,6 +205,7 @@ export default async function DashboardPage() {
                     </p>
                     <p className="text-xs text-gray-500">
                       {meal.calories ?? 0} kcal &middot; {Math.round(meal.protein_g ?? 0)}g protein
+                      {meal.fiber_g ? ` · ${Math.round(meal.fiber_g)}g fiber` : ''}
                     </p>
                   </div>
                   <p className="text-xs text-gray-500">

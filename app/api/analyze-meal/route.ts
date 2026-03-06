@@ -41,6 +41,7 @@ Analyze the provided food image or description and return ONLY valid JSON in thi
   "protein_g": 35,
   "carbs_g": 40,
   "fat_g": 12,
+  "fiber_g": 5,
   "confidence": "high|medium|low",
   "notes": "Optional note about estimation uncertainty"
 }`
