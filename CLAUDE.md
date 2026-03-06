@@ -6,6 +6,14 @@
 
 ---
 
+## Workflow Rule
+
+**After each sizeable change, always commit and push to GitHub/Vercel.** Let the user know where to check the latest changes (the Vercel preview URL or GitHub branch). The user wants to review the app iteratively — do not batch many changes without committing and pushing. Keep changes small and reviewable.
+
+**When the user gives multiple changes, spin out a team of agents to work on them in parallel** so we can attack things concurrently and move faster.
+
+---
+
 ## What This App Is
 
 **Adaptive Health Agent** is a personal health co-pilot web app. Users log meals (via photo, voice, or text), track workouts, and get AI-powered daily recommendations based on their goals. Think of it as a smart, flexible alternative to rigid fitness apps.
